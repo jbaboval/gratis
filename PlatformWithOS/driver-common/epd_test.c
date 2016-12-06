@@ -251,7 +251,7 @@ int main(int argc, char *argv[]) {
 
 	if (image_count > 0) {
 		printf("images start\n");
-		for (int i = 0; i < image_count; ++i) {
+		for (int i = 3; i < image_count; ++i) {
 			printf("image = %d\n", i);
 			EPD_begin(epd);
 #if EPD_IMAGE_TWO_ARG

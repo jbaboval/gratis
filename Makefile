@@ -75,6 +75,14 @@ version-check:
 	 done ; \
 	 [ -z "$${flag}" ] && $(MAKE) version-error && false || true
 
+# Chip targets
+# --------------------
+.PHONY: chip
+chip: version-check
+	$(MAKE) DESTDIR=$(DESTDIR) PREFIX=$(PREFIX) SERVICE=$(SERVICE) PLATFORM=../chip PANEL_VERSION="${PANEL_VERSION}" EPD_IO="${EPD_IO}" -C PlatformWithOS/driver-common
+
+chip-%: version-check
+	$(MAKE) DESTDIR=$(DESTDIR) PREFIX=$(PREFIX) SERVICE=$(SERVICE) PLATFORM=../chip PANEL_VERSION="${PANEL_VERSION}" EPD_IO="${EPD_IO}" -C PlatformWithOS/driver-common $*
 
 # Raspberry Pi targets
 # --------------------

@@ -27,9 +27,12 @@ CFLAGS += -I${PLATFORM}
 CFLAGS += -I${EPD_DIR}
 CFLAGS += -I.
 CFLAGS += -DEPD_IO='"${EPD_IO}"'
+CFLAGS += -D_FILE_OFFSET_BITS=64
 
 LDFLAGS += ${FUSE_LDFLAGS}
 LDFLAGS += -lrt
+LDFLAGS += -lsoc
+LDFLAGS += -lfuse
 
 RM = rm -f
 
