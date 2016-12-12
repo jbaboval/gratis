@@ -93,5 +93,5 @@ void EPD_image(EPD_type *epd, const uint8_t *old_image, const uint8_t *new_image
 // only updating changed pixels
 void EPD_partial_image(EPD_type *epd, const uint8_t *old_image, const uint8_t *new_image);
 
-
+void EPD_blink(EPD_type *epd, const uint8_t *new_image);
 #endif
