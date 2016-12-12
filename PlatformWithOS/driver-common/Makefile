@@ -25,7 +25,7 @@ CFLAGS += ${FUSE_CFLAGS}
 CFLAGS += -Wall -Werror -std=gnu99
 CFLAGS += -I${PLATFORM}
 CFLAGS += -I${EPD_DIR}
-CFLAGS += -I.
+CFLAGS += -I. -g
 CFLAGS += -DEPD_IO='"${EPD_IO}"'
 CFLAGS += -D_FILE_OFFSET_BITS=64
 
@@ -41,7 +41,7 @@ LINUX_MAJOR_VERSION := $(shell uname -r |cut -d '.' -f 1)
 VPATH = .:${PLATFORM}/linux-${LINUX_MAJOR_VERSION}:${PLATFORM}:${EPD_DIR}
 
 .PHONY: all
-all: gpio_test epd_test epd_fuse
+all: gpio_test epd_test epd_fuse epdd
 
 EPD_FUSE_CONF = ${PLATFORM}/epd-fuse.conf
 EPD_FUSE_SH = ${PLATFORM}/epd-fuse.sh
@@ -110,6 +110,10 @@ GPIO_OBJECTS = gpio_test.o gpio.o
 FUSE_OBJECTS = epd_fuse.o ${DRIVER_OBJECTS}
 TEST_OBJECTS = epd_test.o ${DRIVER_OBJECTS}
 
+CLEAN_FILES += epdd
+epdd: epdd.o ${DRIVER_OBJECTS}
+	${CC} ${CFLAGS} ${LDFLAGS} -ljson-c -lb64 -o "$@" epdd.o ${DRIVER_OBJECTS}
+
 # build the fuse driver
 CLEAN_FILES += epd-fuse
 epd_fuse: ${FUSE_OBJECTS}
@@ -131,6 +135,7 @@ epd_test: ${TEST_OBJECTS}
 gpio_test.o: gpio.h ${EPD_IO}
 epd_test.o: gpio.h ${EPD_IO} spi.h epd.h
 epd_fuse.o: gpio.h ${EPD_IO} spi.h epd.h
+epdd.o: gpio.h ${EPD_IO} spi.h epd.h
 
 gpio.o: gpio.h
 spi.o: spi.h

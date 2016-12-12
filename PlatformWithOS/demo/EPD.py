@@ -17,7 +17,9 @@ from PIL import Image
 from PIL import ImageOps
 import re
 import os
-
+import socket
+import json
+import base64
 
 class EPDError(Exception):
     def __init__(self, value):
@@ -34,7 +36,7 @@ class EPD(object):
 to use:
   from EPD import EPD
 
-  epd = EPD([path='/path/to/epd'], [auto=boolean])
+  epd = EPD([path='/path/to/epdd'], [auto=boolean])
 
   image = Image.new('1', epd.size, 0)
   # draw on image
@@ -47,7 +49,7 @@ to use:
     PANEL_RE = re.compile('^([A-Za-z]+)\s+(\d+\.\d+)\s+(\d+)x(\d+)\s+COG\s+(\d+)\s+FILM\s+(\d+)\s*$', flags=0)
 
     def __init__(self, *args, **kwargs):
-        self._epd_path = '/dev/epd'
+        self._epd_path = '/run/epdd'
         self._width = 200
         self._height = 96
         self._panel = 'EPD 2.0'
@@ -63,11 +65,19 @@ to use:
         if ('auto' in kwargs) and kwargs['auto']:
             self._auto = True
 
-        with open(os.path.join(self._epd_path, 'version')) as f:
-            self._version = f.readline().rstrip('\n')
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            s.connect(self._epd_path)
+            s.send(json.dumps({'command': 'get', 'parameter': 'version'}))
+            self._version = json.loads(s.recv(1024))['value']
+        finally:
+            s.close()
 
-        with open(os.path.join(self._epd_path, 'panel')) as f:
-            line = f.readline().rstrip('\n')
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            s.connect(self._epd_path)
+            s.send(json.dumps({'command': 'get', 'parameter': 'panel'}))
+            line = json.loads(s.recv(1024))['value']
             m = self.PANEL_RE.match(line)
             if None == m:
                 raise EPDError('invalid panel string')
@@ -76,6 +86,8 @@ to use:
             self._height = int(m.group(4))
             self._cog = int(m.group(5))
             self._film = int(m.group(6))
+        finally:
+            s.close()
 
         if self._width < 1 or self._height < 1:
             raise EPDError('invalid panel geometry')
@@ -135,22 +147,38 @@ to use:
         if image.size != self.size:
             raise EPDError('image size mismatch')
 
-        with open(os.path.join(self._epd_path, 'LE', 'display_inverse'), 'r+b') as f:
-            f.write(image.tobytes())
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            b64 = base64.b64encode(image.tobytes())
+            s.connect(self._epd_path)
+            s.send(json.dumps({'command': 'image', 'data': b64, 'inverted': 'true', 'endian': 'little'}))
+            s.recv(1024)
+        finally:
+            s.close()
 
         if self.auto:
             self.update()
 
 
     def update(self):
-        self._command('U')
+        self._command('update')
 
     def partial_update(self):
-        self._command('P')
+        self._command('partial')
 
     def clear(self):
-        self._command('C')
+        self._command('clear')
 
-    def _command(self, c):
-        with open(os.path.join(self._epd_path, 'command'), 'wb') as f:
-            f.write(c)
+    def blink(self):
+        self._command('blink')
+
+    def _command(self, command):
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        try:
+            s.connect(self._epd_path)
+            s.send(json.dumps({'command': command}))
+            answer = json.loads(s.recv(1024))
+            if answer['result'] != 'success':
+                print answer
+        finally:
+            s.close()
