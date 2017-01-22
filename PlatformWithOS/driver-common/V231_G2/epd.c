@@ -144,7 +144,7 @@ EPD_type *EPD_create(EPD_size size,
 	epd->EPD_Pin_BUSY = busy_pin;
 
 	epd->size = size;
-	epd->base_stage_time = 480; // milliseconds
+	epd->base_stage_time = 196; // milliseconds
 	epd->lines_per_display = 96;
 	epd->dots_per_line = 128;
 	epd->bytes_per_line = 128 / 8;
@@ -609,6 +609,15 @@ static void frame_data_repeat(EPD_type *epd, const uint8_t *image, const uint8_t
 	its.it_value.tv_nsec = (epd->factored_stage_time % 1000) * 1000000;
 	its.it_interval.tv_sec = 0;
 	its.it_interval.tv_nsec = 0;
+
+//        if (stage == EPD_white) {
+	if (stage == EPD_compensate || stage == EPD_inverse) {
+            its.it_value.tv_sec >>= 2;
+            its.it_value.tv_nsec >>= 2;
+        } else if (stage != EPD_normal) {
+            its.it_value.tv_sec >>= 1;
+            its.it_value.tv_nsec >>= 1;
+        }
 
 	int n = 0;
 	if (-1 == timer_settime(epd->timer, 0, &its, NULL)) {

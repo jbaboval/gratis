@@ -33,6 +33,7 @@
 #include <err.h>
 
 #include "gpio.h"
+#include "epd_io.h"
 #include "libsoc_debug.h"
 
 board_config *board;
@@ -63,6 +64,9 @@ bool GPIO_setup() {
 		warn("ERROR: Cannot initialize board pin database");
 		return false;
 	}
+
+	GPIO_mode(flash_cs_pin, GPIO_OUTPUT);
+        GPIO_write(flash_cs_pin, 1);
 
 	return true;
 }

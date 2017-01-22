@@ -22,6 +22,7 @@
 #define pwm_pin       CSID1
 #define reset_pin     CSID7
 #define busy_pin      CSID6
+#define flash_cs_pin  CSID0
 
 #define SPI_DEVICE    "/dev/spidev32766.0"
 #define SPI_BPS       30000000

@@ -162,12 +162,16 @@ def demo(epd, settings):
 
         # display image on the panel
         epd.display(image)
+#        epd.partial_update()
         epd.update()
+
+        if (now.minute % 5) == 0:
+            epd.blink()  
 
         # wait for next minute
         while True:
             now = datetime.today()
-            if now.second == 0:
+            if now.second == 0: # or now.second == 30:
                 break
             time.sleep(0.5)
 
