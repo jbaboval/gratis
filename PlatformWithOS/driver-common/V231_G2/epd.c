@@ -320,6 +320,7 @@ void EPD_begin(EPD_type *epd) {
 	SPI_read(epd->spi, CU8(0x71, 0x00), receive_buffer, sizeof(receive_buffer));
 	int cog_id = receive_buffer[1];
 	if (0x02 != (0x0f & cog_id)) {
+		printf("cog_id = %x\n", cog_id);
 		epd->status = EPD_UNSUPPORTED_COG;
 		power_off(epd);
 		return;
@@ -612,8 +613,8 @@ static void frame_data_repeat(EPD_type *epd, const uint8_t *image, const uint8_t
 
 //        if (stage == EPD_white) {
 	if (stage == EPD_compensate || stage == EPD_inverse) {
-            its.it_value.tv_sec >>= 2;
-            its.it_value.tv_nsec >>= 2;
+            its.it_value.tv_sec >>= 1;
+            its.it_value.tv_nsec >>= 1;
         } else if (stage != EPD_normal) {
             its.it_value.tv_sec >>= 1;
             its.it_value.tv_nsec >>= 1;
