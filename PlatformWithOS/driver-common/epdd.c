@@ -36,7 +36,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <json-c/json.h>
-#include <b64/cdecode.h>
+#include "b64.h"
 #include "gpio.h"
 #include "spi.h"
 #include "epd.h"
@@ -216,7 +216,7 @@ process_image_command(struct json_object *json_obj, int fd)
 	json_object *endian_obj = NULL;
         json_object *inverted_obj = NULL;
         json_object *data_obj = NULL;
-	char buffer[BUFFER_SIZE];
+	unsigned char buffer[BUFFER_SIZE];
 
         if (json_object_object_get_ex(json_obj, "endian", &endian_obj)) {
 		const char *endian_str = json_object_get_string(endian_obj);
@@ -242,12 +242,10 @@ process_image_command(struct json_object *json_obj, int fd)
         if (len > BUFFER_SIZE) {
             len = BUFFER_SIZE;
         }
-        base64_decodestate b64state;
-        base64_init_decodestate(&b64state);
-        len = base64_decode_block(data_str, len, buffer, &b64state);
+        base64decode(data_str, len, buffer, &len);
 
-	if (len > 0) {
-		special_memcpy(display_buffer, buffer, len, bit_reversed, inverted);
+	if (len >= 0) {
+		special_memcpy(display_buffer, (char *)buffer, len, bit_reversed, inverted);
 	}
 
 	json_object_object_add(json_obj, "result",

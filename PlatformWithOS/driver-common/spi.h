@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <linux/ioctl.h>
 
 
 // type to hold SPI data

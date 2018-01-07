@@ -30,9 +30,10 @@ CFLAGS += -DEPD_IO='"${EPD_IO}"'
 CFLAGS += -D_FILE_OFFSET_BITS=64
 
 LDFLAGS += ${FUSE_LDFLAGS}
-LDFLAGS += -lrt
-LDFLAGS += -lsoc
-LDFLAGS += -lfuse
+
+LIBS  = -lrt
+LIBS += -lsoc
+LIBS += -lfuse
 
 RM = rm -f
 
@@ -111,24 +112,24 @@ FUSE_OBJECTS = epd_fuse.o ${DRIVER_OBJECTS}
 TEST_OBJECTS = epd_test.o ${DRIVER_OBJECTS}
 
 CLEAN_FILES += epdd
-epdd: epdd.o ${DRIVER_OBJECTS}
-	${CC} ${CFLAGS} ${LDFLAGS} -ljson-c -lb64 -o "$@" epdd.o ${DRIVER_OBJECTS}
+epdd: b64.o epdd.o ${DRIVER_OBJECTS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" epdd.o b64.o ${DRIVER_OBJECTS} ${LIBS} -ljson-c
 
 # build the fuse driver
 CLEAN_FILES += epd-fuse
 epd_fuse: ${FUSE_OBJECTS}
-	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" ${FUSE_OBJECTS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" ${FUSE_OBJECTS} ${LIBS}
 
 
 # build simple GPIO test program
 CLEAN_FILES += gpio_test
 gpio_test: ${GPIO_OBJECTS}
-	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" ${GPIO_OBJECTS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" ${GPIO_OBJECTS} ${LIBS}
 
 # build EPD test program
 CLEAN_FILES += epd_test
 epd_test: ${TEST_OBJECTS}
-	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" ${TEST_OBJECTS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o "$@" ${TEST_OBJECTS} ${LIBS}
 
 
 # dependencies
